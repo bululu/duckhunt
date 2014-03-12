@@ -29,4 +29,8 @@ public class Tree implements FieldItem {
         return new Position(rand.nextInt(field.getXLength()),rand.nextInt(field.getYLength()));
     }
 
+    @Override
+    public void setChecked() {
+    }
+
 }

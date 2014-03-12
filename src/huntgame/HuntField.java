@@ -33,21 +33,23 @@ public class HuntField {
     public synchronized boolean shot(Position pos){
         if ((pos.getX()<0)||(pos.getY()<0)||(pos.getX()>=XLength)||(pos.getY()>=YLength)||(field[pos.getX()][pos.getY()]==null))
             return false;
-        if (field[pos.getX()][pos.getY()].fired())
-            return removeItem(field[pos.getX()][pos.getY()],pos);
-        return false;
+        return field[pos.getX()][pos.getY()].fired();
     }
     
-    private synchronized boolean removeItem(FieldItem item, Position pos){
+    public synchronized boolean removeItem(FieldItem item, Position pos){
         if ((pos.getX()<0)||(pos.getY()<0)||(pos.getX()>=XLength)||(pos.getY()>=YLength)||(field[pos.getX()][pos.getY()]!=item))
             return false;        
         field[pos.getX()][pos.getY()]=null;
         return true;
     }
     
-    private char getItemType(Position pos){
-        if (field[pos.getX()][pos.getY()]!=null)
-            return field[pos.getX()][pos.getY()].getType();
+    public char getItemType(Position pos){
+    char type;
+        if (field[pos.getX()][pos.getY()]!=null){
+             type=field[pos.getX()][pos.getY()].getType();
+             field[pos.getX()][pos.getY()].setChecked();
+             return type;
+        }
         return ' ';
     }
     

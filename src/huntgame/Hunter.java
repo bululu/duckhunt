@@ -5,25 +5,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Hunter extends Thread implements FieldItem {
-    
+
     private HuntField field;
     private int hunted;
     private Position pos;
     private boolean alive;
+    private boolean checked;
     
     public Hunter(HuntField field) {
         this.field=field;
         alive=true;
+        checked=false;
         hunted=0;
         do{            
             pos=getPosition();
         }while (field.setItem(this, pos)!=true);
     }
-            
+
+    @Override
+    public void setChecked() {
+        this.checked = true;
+    }
+    
     @Override
     public boolean fired() {
-        alive=false;
-        return true;
+        if (alive){
+            alive=false;
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -37,7 +47,7 @@ public class Hunter extends Thread implements FieldItem {
 
     @Override
     public void run() {
-    int posgen;
+    int posgen=0;
     Position newpos=null;
     Random rand= new Random();
     
@@ -47,40 +57,40 @@ public class Hunter extends Thread implements FieldItem {
             } catch (InterruptedException ex) {
                 Logger.getLogger(Hunter.class.getName()).log(Level.SEVERE, null, ex);
             }
-            posgen=rand.nextInt(8);
             switch (posgen){
                 case 0:
                     newpos=new Position(pos.getX()+1,pos.getY());
                     break;
                 case 1:
-                    newpos=new Position(pos.getX()+1,pos.getY()+1);
-                    break;
-                case 2:
-                     newpos=new Position(pos.getX(),pos.getY()+1);
-                    break;
-                case 3:
-                    newpos=new Position(pos.getX()-1,pos.getY()+1);
-                    break;
-                case 4:
-                    newpos=new Position(pos.getX()-1,pos.getY());
-                    break;
-                case 5:
-                    newpos=new Position(pos.getX()-1,pos.getY()-1);
-                    break;
-                case 6:
                     newpos=new Position(pos.getX(),pos.getY()-1);
                     break;
-                case 7:
-                    newpos=new Position(pos.getX()+1,pos.getY()-1);
+                case 2:
+                     newpos=new Position(pos.getX()-1,pos.getY());
+                    break;
+                case 3:
+                    newpos=new Position(pos.getX(),pos.getY()+1);
                     break;
             }
             if (field.shot(newpos)){
-                hunted++;
-                if(field.moveItem(this, pos, newpos))
-                    pos=newpos;
+                if(field.getItemType(newpos)=='D'){
+                    hunted++;
+                    if(field.moveItem(this, pos, newpos))
+                        pos=newpos;
+                }
             }
-                
-        }        
+            posgen++;
+            if (posgen==4)
+                posgen=0;                
+        }
+        while((!checked)&&(field.getNumberOfItems('D')>0)){
+            try {
+                Thread.sleep(300);
+            }
+            catch (InterruptedException ex) {
+                Logger.getLogger(Duck.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        field.removeItem(this, pos);
     }
 
     private Position getPosition() {
