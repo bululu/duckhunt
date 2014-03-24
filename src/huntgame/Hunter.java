@@ -10,23 +10,16 @@ public class Hunter extends Thread implements FieldItem {
     private int hunted;
     private Position pos;
     private boolean alive;
-    private boolean checked;
     
     public Hunter(HuntField field) {
         this.field=field;
         alive=true;
-        checked=false;
         hunted=0;
         do{            
             pos=getPosition();
         }while (field.setItem(this, pos)!=true);
     }
 
-    @Override
-    public void setChecked() {
-        this.checked = true;
-    }
-    
     @Override
     public boolean fired() {
         if (alive){
@@ -52,6 +45,7 @@ public class Hunter extends Thread implements FieldItem {
     Random rand= new Random();
     
         while ((alive) && (field.getNumberOfItems('D')>0)){
+        boolean req;
             try {
                 Thread.sleep(rand.nextInt(101));
             } catch (InterruptedException ex) {
@@ -71,24 +65,18 @@ public class Hunter extends Thread implements FieldItem {
                     newpos=new Position(pos.getX(),pos.getY()+1);
                     break;
             }
-            if (field.shot(newpos)){
-                if(field.getItemType(newpos)=='D'){
-                    hunted++;
-                    if(field.moveItem(this, pos, newpos))
-                        pos=newpos;
-                }
+            synchronized (field){
+                req=(field.shot(newpos));
+                req=req&&(field.getItemType(newpos)=='D');
+            }
+            if(req){
+                hunted++;
+                if(field.moveItem(this, pos, newpos))
+                    pos=newpos;
             }
             posgen++;
             if (posgen==4)
                 posgen=0;                
-        }
-        while((!checked)&&(field.getNumberOfItems('D')>0)){
-            try {
-                Thread.sleep(300);
-            }
-            catch (InterruptedException ex) {
-                Logger.getLogger(Duck.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
         field.removeItem(this, pos);
     }

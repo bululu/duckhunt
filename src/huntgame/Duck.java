@@ -9,22 +9,15 @@ public class Duck extends Thread implements FieldItem {
     private HuntField field;
     private Position pos;
     private boolean alive;
-    private boolean checked;
     
     public Duck(HuntField field) {
         this.field=field;
         alive=true;
-        checked=false;
         do{            
             pos=getPosition();
         }while (field.setItem(this, pos)!=true);
     }
     
-    @Override
-    public void setChecked() {
-        this.checked = true;
-    }
-
     @Override
     public boolean fired() {
         if (alive){
@@ -70,14 +63,6 @@ public class Duck extends Thread implements FieldItem {
             }
             if (field.moveItem(this, pos, newpos))
                 pos=newpos;
-        }
-        while(!checked){
-            try {
-                Thread.sleep(300);
-            }
-            catch (InterruptedException ex) {
-                Logger.getLogger(Duck.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
         field.removeItem(this, pos);
     }

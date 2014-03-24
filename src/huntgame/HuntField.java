@@ -1,5 +1,8 @@
 package huntgame;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class HuntField {
 
     private int XLength;
@@ -43,26 +46,41 @@ public class HuntField {
         return true;
     }
     
-    public char getItemType(Position pos){
+    public synchronized char getItemType(Position pos){
     char type;
-        if (field[pos.getX()][pos.getY()]!=null){
-             type=field[pos.getX()][pos.getY()].getType();
-             field[pos.getX()][pos.getY()].setChecked();
-             return type;
-        }
+        if (field[pos.getX()][pos.getY()]!=null)
+             return field[pos.getX()][pos.getY()].getType();
         return ' ';
     }
     
     public synchronized boolean moveItem(FieldItem item, Position pos, Position newpos){
         if ((pos.getX()<0)||(pos.getY()<0)||(pos.getX()>=XLength)||(pos.getY()>=YLength)||(field[pos.getX()][pos.getY()]!=item) 
-            ||(newpos.getX()<0)||(newpos.getY()<0)||(newpos.getX()>=XLength)||(newpos.getY()>=YLength)||(field[newpos.getX()][newpos.getY()]!=null))
+            ||(newpos.getX()<0)||(newpos.getY()<0)||(newpos.getX()>=XLength)||(newpos.getY()>=YLength))
+            return false;
+        long time=System.nanoTime();
+        long auxtime=time;
+        
+        if (field[newpos.getX()][newpos.getY()]!=null)
+        {
+        
+            do{
+                auxtime=System.nanoTime();
+                try {
+                    wait(1000);
+
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(HuntField.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }while((auxtime-time<=60000)&&(field[newpos.getX()][newpos.getY()]!=null));
+        }
+        if(auxtime-time>60000)
             return false;
         field[pos.getX()][pos.getY()]=null;
         field[newpos.getX()][newpos.getY()]=item;
         return true;
     }
     
-    public int getNumberOfItems(char type){
+    public synchronized int getNumberOfItems(char type){
     int count=0;
     
         for (int i=0; i<XLength; i++)
@@ -74,7 +92,7 @@ public class HuntField {
     }
     
     @Override
-    public String toString(){
+    public synchronized String toString(){
     String fieldstr="";
         
         for (int i=0; i<XLength; i++){
